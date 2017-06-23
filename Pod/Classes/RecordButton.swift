@@ -7,18 +7,18 @@
 //
 
 @objc public enum RecordButtonState : Int {
-    case recording, idle, hidden;
+    case recording, idle, hidden,imageCapture;
 }
 
 @objc open class RecordButton : UIButton {
     
-    open var buttonColor: UIColor! = .blue{
+    open var buttonColor: UIColor! = UIColor.init(colorLiteralRed: 230/255, green: 80/255, blue: 120/255, alpha: 1.0){
         didSet {
             circleLayer.backgroundColor = buttonColor.cgColor
             circleBorder.borderColor = buttonColor.cgColor
         }
     }
-    open var progressColor: UIColor!  = .red {
+    open var progressColor: UIColor!  = .white {
         didSet {
             gradientMaskLayer.colors = [progressColor.cgColor, progressColor.cgColor]
         }
@@ -38,6 +38,8 @@
             case .recording:
                 self.alpha = 1.0
                 setRecording(true)
+            case .imageCapture:
+                self.alpha = 1.0
             case .hidden:
                 self.alpha = 0
             }
@@ -50,13 +52,13 @@
     fileprivate var progressLayer: CAShapeLayer!
     fileprivate var gradientMaskLayer: CAGradientLayer!
     fileprivate var currentProgress: CGFloat! = 0
-
+    
     
     override public init(frame: CGRect) {
         
         super.init(frame: frame)
         
-        self.addTarget(self, action: #selector(RecordButton.didTouchDown), for: .touchDown)
+        //        self.addTarget(self, action: #selector(RecordButton.didTouchDown), for: .touchDown)
         self.addTarget(self, action: #selector(RecordButton.didTouchUp), for: .touchUpInside)
         self.addTarget(self, action: #selector(RecordButton.didTouchUp), for: .touchUpOutside)
         
@@ -65,13 +67,7 @@
     }
     
     required public init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        
-        self.addTarget(self, action: #selector(RecordButton.didTouchDown), for: .touchDown)
-        self.addTarget(self, action: #selector(RecordButton.didTouchUp), for: .touchUpInside)
-        self.addTarget(self, action: #selector(RecordButton.didTouchUp), for: .touchUpOutside)
-        
-        self.drawButton()
+        fatalError("init(coder:) has not been implemented")
     }
     
     
@@ -91,7 +87,7 @@
         
         circleBorder = CALayer()
         circleBorder.backgroundColor = UIColor.clear.cgColor
-        circleBorder.borderWidth = 1
+        circleBorder.borderWidth = 2
         circleBorder.borderColor = buttonColor.cgColor
         circleBorder.bounds = CGRect(x: 0, y: 0, width: self.bounds.size.width - 1.5, height: self.bounds.size.height - 1.5)
         circleBorder.anchorPoint = CGPoint(x: 0.5, y: 0.5)
@@ -108,7 +104,7 @@
         progressLayer.backgroundColor = UIColor.clear.cgColor
         progressLayer.fillColor = nil
         progressLayer.strokeColor = UIColor.black.cgColor
-        progressLayer.lineWidth = 4.0
+        progressLayer.lineWidth = 2.0
         progressLayer.strokeStart = 0.0
         progressLayer.strokeEnd = 0.0
         gradientMaskLayer.mask = progressLayer
@@ -117,7 +113,7 @@
     
     fileprivate func setRecording(_ recording: Bool) {
         
-        let duration: TimeInterval = 0.15
+        let duration: TimeInterval = 0.10
         circleLayer.contentsGravity = "center"
         
         let scale = CABasicAnimation(keyPath: "transform.scale")
@@ -175,8 +171,8 @@
         let gradientLayer = CAGradientLayer()
         gradientLayer.frame = self.bounds
         gradientLayer.locations = [0.0, 1.0]
-        let topColor = progressColor
-        let bottomColor = progressColor
+        let topColor = buttonColor
+        let bottomColor = buttonColor
         gradientLayer.colors = [topColor?.cgColor, bottomColor?.cgColor]
         return gradientLayer
     }
@@ -186,11 +182,22 @@
         circleLayer.position = CGPoint(x: self.bounds.midX,y: self.bounds.midY)
         circleBorder.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         circleBorder.position = CGPoint(x: self.bounds.midX,y: self.bounds.midY)
+        
+        
         super.layoutSubviews()
     }
-    
-    
+    public func resetButton()
+    {
+        //        self.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        //        self.drawButton()
+    }
+    public func mediaCaptured()
+    {
+        //        circleLayer.contents = UIImage(named: "done")?.cgImage
+        //        circleLayer.contentsGravity = kCAGravityCenter
+    }
     open func didTouchDown(){
+        
         self.buttonState = .recording
     }
     
@@ -200,9 +207,9 @@
             
             UIView.animate(withDuration: 0.3, animations: {
                 self.buttonState = .hidden
-                }, completion: { completion in
-                    self.setProgress(0)
-                    self.currentProgress = 0
+            }, completion: { completion in
+                self.setProgress(0)
+                self.currentProgress = 0
             })
         } else {
             self.buttonState = .idle
@@ -211,10 +218,10 @@
     
     
     /**
-    Set the relative length of the circle border to the specified progress
-    
-    - parameter newProgress: the relative lenght, a percentage as float.
-    */
+     Set the relative length of the circle border to the specified progress
+     
+     - parameter newProgress: the relative lenght, a percentage as float.
+     */
     open func setProgress(_ newProgress: CGFloat) {
         progressLayer.strokeEnd = newProgress
     }
